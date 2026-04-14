@@ -10,6 +10,13 @@ import {
 import { motion } from "framer-motion";
 import { useState } from "react";
 
+interface ContactItemProps {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  href: string;
+}
+
 const ContactPage = () => {
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState({
@@ -18,16 +25,36 @@ const ContactPage = () => {
     message: "",
   });
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    setSending(true);
+
+    // Simulate API request
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    alert("Message sent successfully!");
+    setForm({ name: "", email: "", message: "" });
+    setSending(false);
+  };
+
   return (
     <motion.div
-      className="pt-28 pb-28"
+      className="pt-24 sm:pt-28 pb-20 sm:pb-28 px-4 sm:px-6"
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       {/* HEADER */}
       <motion.div
-        className="text-center text-3xl md:text-5xl xl:text-6xl"
+        className="text-center"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.7 }}
@@ -40,12 +67,11 @@ const ContactPage = () => {
         </p>
       </motion.div>
 
-      {/* Content */}
-      <div className="w-[90%] md:w-[80%] lg:w-[70%] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center mt-14">
-        
+      {/* CONTENT */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch mt-12 sm:mt-14">
         {/* LEFT INFO CARD */}
         <motion.div
-          className="w-full max-w-3xl bg-black/40 border border-orange-500/40 rounded-2xl p-8 shadow-xl backdrop-blur-md"
+          className="w-full bg-black/40 border border-orange-500/40 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-md"
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -54,77 +80,111 @@ const ContactPage = () => {
             <span className="text-orange-400 text-xl">
               <ContactIcon />
             </span>
-            <h2 className="text-lg font-semibold text-white">Contact Info</h2>
+            <h2 className="text-lg font-semibold text-white">
+              Contact Info
+            </h2>
           </div>
 
-          <ContactItem icon={<BiPhone />} title="Phone" value="+91 8247842565" />
+          <ContactItem
+            icon={<BiPhone />}
+            title="Phone"
+            value="+91 8247842565"
+            href="tel:+918247842565"
+          />
           <ContactItem
             icon={<BiEnvelope />}
             title="Email"
             value="madhusaipitani95@gmail.com"
+            href="mailto:madhusaipitani95@gmail.com"
           />
           <ContactItem
             icon={<BiLogoLinkedin />}
             title="LinkedIn"
             value="linkedin.com/in/pitanimadhusayi"
+            href="https://linkedin.com/in/pitanimadhusayi"
           />
           <ContactItem
             icon={<BiMap />}
             title="Address"
             value="Allavaram, Andhra Pradesh, India"
+            href="https://www.google.com/maps?q=Allavaram,Andhra+Pradesh,India"
           />
         </motion.div>
 
         {/* RIGHT FORM */}
-        <motion.div
-          className="md:p-10 p-5 bg-black/40 border border-orange-500/40 rounded-2xl shadow-xl backdrop-blur-md"
+        <motion.form
+          onSubmit={handleSubmit}
+          className="bg-black/40 border border-orange-500/40 rounded-2xl p-5 sm:p-8 md:p-10 shadow-xl backdrop-blur-md"
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
           <input
+            name="name"
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={handleChange}
             placeholder="Your Name"
-            className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full outline-none placeholder:text-white/60 mb-6"
+            required
+            className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full outline-none placeholder:text-white/60 mb-5 border border-transparent focus:border-orange-500 transition-all"
           />
 
           <input
+            name="email"
+            type="email"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            onChange={handleChange}
             placeholder="Email Address"
-            className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full outline-none placeholder:text-white/60 mb-6"
+            required
+            className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full outline-none placeholder:text-white/60 mb-5 border border-transparent focus:border-orange-500 transition-all"
           />
 
           <textarea
+            name="message"
             value={form.message}
-            onChange={(e) =>
-              setForm({ ...form, message: e.target.value })
-            }
+            onChange={handleChange}
             placeholder="Your Message"
-            className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full h-[13rem] outline-none placeholder:text-white/60"
+            required
+            className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full h-44 outline-none placeholder:text-white/60 border border-transparent focus:border-orange-500 transition-all"
           />
 
           <button
+            type="submit"
             disabled={sending}
-            className="mt-8 px-12 py-4 bg-orange-500 hover:bg-orange-600 transition-all duration-300 rounded-full shadow-[0_0_25px_rgba(255,140,0,0.7)] hover:shadow-[0_0_40px_rgba(255,140,0,1)]"
+            className="mt-6 w-full sm:w-auto px-10 py-3.5 bg-orange-500 hover:bg-orange-600 transition-all duration-300 rounded-full shadow-[0_0_20px_rgba(255,140,0,0.6)] hover:shadow-[0_0_35px_rgba(255,140,0,1)] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Send Message
+            {sending ? "Sending..." : "Send Message"}
           </button>
-        </motion.div>
+        </motion.form>
       </div>
     </motion.div>
   );
 };
 
-const ContactItem = ({ icon, title, value }: any) => (
-  <div className="flex items-center gap-4 mb-6">
-    <span className="text-orange-400 text-3xl">{icon}</span>
+const ContactItem: React.FC<ContactItemProps> = ({
+  icon,
+  title,
+  value,
+  href,
+}) => (
+  <motion.a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    whileHover={{ x: 5 }}
+    className="flex items-center gap-4 mb-6 group transition-all duration-300"
+  >
+    <span className="text-orange-400 text-3xl transition-transform duration-300 group-hover:scale-110">
+      {icon}
+    </span>
     <div>
-      <p className="text-gray-200 font-semibold text-lg">{title}</p>
-      <p className="text-gray-400 text-sm">{value}</p>
+      <p className="text-gray-200 font-semibold text-lg group-hover:text-orange-400 transition-colors">
+        {title}
+      </p>
+      <p className="text-gray-400 text-sm group-hover:text-gray-200">
+        {value}
+      </p>
     </div>
-  </div>
+  </motion.a>
 );
 
 export default ContactPage;
