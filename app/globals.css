@@ -224,3 +224,33 @@
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
+
+@keyframes glowText {
+  0% {
+    text-shadow: 0 0 5px rgba(255, 140, 0, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255, 140, 0, 0.6);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(255, 140, 0, 0.3);
+  }
+}
+
+.glow-text {
+  animation: glowText 3s ease-in-out infinite;
+}
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+}
+
+body {
+  font-family: var(--font-inter);
+}
+
+/* Headings use Poppins */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins);
+}
