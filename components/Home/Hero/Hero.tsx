@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import ParticlesHero from "./ParticleBackground";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
@@ -8,99 +9,116 @@ import { MdFastfood } from "react-icons/md";
 
 const Hero = () => {
   return (
-    <motion.div
-      className="relative h-screen flex items-center justify-between px-12 md:px-20 text-white"
-      initial={{ opacity: 0, y: 50, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-    >
-      {/* Particles */}
+    <section className="relative min-h-screen flex items-center text-white overflow-hidden pt-24">
+      {/* Background Particles */}
       <ParticlesHero className="absolute inset-0 -z-10 pointer-events-none" />
 
-      {/* LEFT */}
       <motion.div
-        className="max-w-2xl"
-        initial={{ opacity: 0, x: -60 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
+        className="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 lg:px-24
+        flex flex-col-reverse md:flex-row items-center justify-between gap-12"
+        initial={{ opacity: 0, y: 50, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl mt-6 font-bold tracking-wide leading-tight">
-          Smart Restaurant
-          <span className="text-orange-400"> Management </span>
-          Using QR Scanner
-        </h1>
-
-        {/* ⭐ TYPEWRITER EFFECT */}
-        <div className="mt-6 text-gray-300 text-lg min-h-[40px]">
-  <Typewriter
-    options={{
-      strings: [
-        "Seamless ordering 🍽️",
-        "Instant billing ⚡",
-        "Modern dining experience 🚀",
-        "Smart Restaurant Powered by QR 🔥"
-      ],
-      autoStart: true,
-      loop: true,
-      delay: 40,
-      deleteSpeed: 30,
-    }}
-  />
-</div>
-
-
-        {/* BUTTON */}
-        <motion.a
-          href="/menu"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="inline-block mt-6 px-8 py-3 rounded-full text-lg font-semibold
-          bg-orange-500 hover:bg-orange-600 transition-all duration-300
-          shadow-[0_0_25px_rgba(255,140,0,0.6)]
-          hover:shadow-[0_0_40px_rgba(255,140,0,0.9)]"
-        >
-          Order Now
-          
-        </motion.a>
-      </motion.div>
-
-      {/* RIGHT – QR */}
-      <motion.div
-        className="relative flex flex-col items-center hidden md:flex"
-        initial={{ opacity: 0, x: 80 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.9 }}
-      >
-        <div className="absolute w-[280px] h-[280px] rounded-2xl bg-orange-500 blur-2xl animate-pulse" />
-
+        {/* LEFT CONTENT */}
         <motion.div
-          initial={{ rotate: -8, scale: 0.95 }}
-          animate={{ rotate: 0, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative"
+          className="w-full md:w-1/2 max-w-2xl text-center md:text-left"
+          initial={{ opacity: 0, x: -60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
         >
-          <Image
-            src="/images/qr.jpg"
-            alt="qr"
-            width={430}
-            height={430}
-            className="rounded-xl border-[8px] border-[#1a1a4d]
-            shadow-[0_0_40px_#ff8c00]
-            animate-float"
-          />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-wide leading-tight">
+            Smart Restaurant
+            <span className="text-orange-400"> Management </span>
+            Using QR Scanner
+          </h1>
+
+          {/* Typewriter Effect */}
+          <div className="mt-6 text-gray-300 text-base sm:text-lg md:text-xl min-h-[40px]">
+            <Typewriter
+              options={{
+                strings: [
+                  "Seamless ordering 🍽️",
+                  "Instant billing ⚡",
+                  "Modern dining experience 🚀",
+                  "Smart Restaurant Powered by QR 🔥",
+                ],
+                autoStart: true,
+                loop: true,
+                delay: 40,
+                deleteSpeed: 30,
+              }}
+            />
+          </div>
+
+          {/* CTA Button */}
+          <motion.div
+            className="mt-8 flex justify-center md:justify-start"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <Link href="/menu">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3
+                rounded-full text-base sm:text-lg font-semibold
+                bg-orange-500 hover:bg-orange-600 transition-all duration-300
+                shadow-[0_0_25px_rgba(255,140,0,0.6)]
+                hover:shadow-[0_0_40px_rgba(255,140,0,0.9)]"
+              >
+                <MdFastfood size={20} />
+                Order Now
+              </motion.button>
+            </Link>
+          </motion.div>
         </motion.div>
 
-        <motion.p
-          className="mt-4 text-gray-300"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
+        {/* RIGHT CONTENT – QR CODE */}
+        <motion.div
+          className="relative w-full md:w-1/2 flex flex-col items-center"
+          initial={{ opacity: 0, x: 80 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.9 }}
         >
-          Scan to explore 🚀
-        </motion.p>
+          {/* Glowing Background */}
+          <div
+            className="absolute w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64
+            rounded-2xl bg-orange-500 blur-2xl opacity-70 animate-pulse"
+          />
+
+          {/* QR Image */}
+          <motion.div
+            initial={{ rotate: -8, scale: 0.95 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative"
+          >
+            <Image
+              src="/images/qr.jpg"
+              alt="QR Code for Smart Restaurant Menu"
+              width={420}
+              height={420}
+              priority
+              className="w-52 sm:w-64 md:w-80 lg:w-[420px] h-auto
+              rounded-xl border-[6px] md:border-[8px] border-[#1a1a4d]
+              shadow-[0_0_40px_#ff8c00] animate-float"
+            />
+          </motion.div>
+
+          {/* Caption */}
+          <motion.p
+            className="mt-4 text-gray-300 text-sm sm:text-base"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            Scan to explore 🚀
+          </motion.p>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </section>
   );
 };
 
