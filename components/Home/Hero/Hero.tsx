@@ -30,8 +30,8 @@ const Hero = () => {
           <h1
   className="
     font-[var(--font-poppins)]
-    text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl
-    font-extrabold leading-tight tracking-tight
+    text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl
+    font-bold leading-tight tracking-tight
     text-white drop-shadow-lg
   "
 >
