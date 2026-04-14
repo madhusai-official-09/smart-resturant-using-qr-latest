@@ -1,100 +1,157 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { HiBars3BottomRight } from "react-icons/hi2";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+
+const navLinks = [
+  { label: "Home", href: "/" },
+  { label: "Menu", href: "/menu" },
+  { label: "QR Codes", href: "/qr" },
+  { label: "Tables", href: "/tables" },
+  { label: "Orders", href: "/orders" },
+  { label: "Contact", href: "/contact" },
+];
 
 const Nav = ({ openNav }: { openNav: () => void }) => {
   const [navBg, setNavBg] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Change navbar background on scroll
   useEffect(() => {
-    const handler = () => setNavBg(window.scrollY >= 90);
+    const handler = () => setNavBg(window.scrollY >= 80);
     window.addEventListener("scroll", handler);
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
-  // 🔥 CHECK USER LOGIN
+  // Fetch logged-in user
   const fetchUser = async () => {
-    const res = await fetch("/api/auth/me");
-    const data = await res.json();
-    setUser(data.user);
+    try {
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      setUser(data.user || null);
+    } catch (error) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchUser();
   }, []);
 
-  // 🔥 LOGOUT
+  // Logout handler
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
     setUser(null);
     router.push("/login");
+    router.refresh();
+  };
+
+  // Check active route
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
   };
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-200 ${
-        navBg ? "bg-[#1b0b03]/90 shadow-md" : "bg-transparent"
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        navBg
+          ? "bg-[#1b0b03]/90 backdrop-blur-md shadow-lg"
+          : "bg-transparent"
       }`}
-      style={{ height: "12vh" }}
     >
-      <div className="flex items-center h-full justify-between w-[90%] mx-auto">
+      <div className="flex items-center justify-between h-[70px] sm:h-[75px] lg:h-[80px] w-[92%] max-w-7xl mx-auto">
         
-        {/* LOGO */}
-        <div className="flex items-center space-x-2">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2">
           <div className="w-9 h-9 bg-orange-500 rounded-full flex items-center justify-center overflow-hidden">
-            <Image src="/images/logo.png" alt="Logo" width={40} height={40} />
+            <Image
+              src="/images/logo.png"
+              alt="SmartRestaurant Logo"
+              width={40}
+              height={40}
+              className="object-cover"
+              priority
+            />
           </div>
-          <h1 className="text-xl text-white font-bold">SmartRestaurant</h1>
-        </div>
+          <h1 className="text-lg sm:text-xl font-bold text-white">
+            SmartRestaurant
+          </h1>
+        </Link>
 
-        {/* LINKS */}
-        <nav className="hidden lg:flex items-center space-x-10">
-          <Link href="/" className="text-gray-300 hover:text-orange-400">Home</Link>
-          <Link href="/menu" className="text-gray-300 hover:text-orange-400">Menu</Link>
-          <Link href="/qr" className="text-gray-300 hover:text-orange-400">QR</Link>
-          <Link href="/tables" className="text-gray-300 hover:text-orange-400">Tables</Link>
-          <Link href="/orders" className="text-gray-300 hover:text-orange-400">Orders</Link>
-          <Link href="/contact" className="text-gray-300 hover:text-orange-400">Contact</Link>
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex items-center space-x-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`relative px-3 py-2 transition-colors duration-200 ${
+                isActive(link.href)
+                  ? "text-orange-400"
+                  : "text-gray-300 hover:text-orange-400"
+              }`}
+            >
+              {link.label}
+              {isActive(link.href) && (
+                <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-orange-400 rounded-full" />
+              )}
+            </Link>
+          ))}
         </nav>
 
-        {/* RIGHT SIDE */}
+        {/* Right Section */}
         <div className="flex items-center gap-3">
-          {!user ? (
+          {loading ? (
+            <div className="w-20 h-8 bg-gray-700 animate-pulse rounded-md hidden sm:block" />
+          ) : !user ? (
             <>
               <Link href="/login">
-                <button className="px-4 py-2 border border-orange-400 text-orange-400 rounded-lg">
+                <button className="hidden sm:block px-4 py-2 border border-orange-400 text-orange-400 rounded-lg hover:bg-orange-400 hover:text-white transition">
                   Login
                 </button>
               </Link>
 
               <Link href="/register">
-                <button className="px-4 py-2 bg-orange-500 text-white rounded-lg">
+                <button className="hidden sm:block px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition">
                   Register
                 </button>
               </Link>
             </>
           ) : (
-            <>
+            <div className="hidden sm:flex items-center gap-3">
               <span className="text-orange-400 font-semibold">
                 {user.name}
               </span>
-
               <button
                 onClick={logout}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
                 Logout
               </button>
-            </>
+            </div>
           )}
 
-          {/* MOBILE */}
-          <button onClick={openNav} className="lg:hidden text-white">
-            <HiBars3BottomRight size={22} />
+          {/* Mobile Menu Button */}
+          <button
+            onClick={openNav}
+            aria-label="Open menu"
+            className="flex items-center justify-center w-10 h-10 rounded-md lg:hidden text-white hover:bg-white/10 transition"
+          >
+            <HiBars3BottomRight size={24} />
           </button>
         </div>
       </div>
