@@ -25,7 +25,6 @@ const allMenuItems = [
   { category: "nonveg", name: "Whole Roasted Chicken", price: 399, img: "/images/nonveg/roasted-chicken.jpg" },
   { category: "nonveg", name: "Roasted Chicken Thighs", price: 319, img: "/images/nonveg/roasted-chicken-thighs-with-roasted-cherry-tomatoes.jpg" },
 
-
   { category: "starter", name: "Veg Sandwich Platter", price: 149, img: "/images/starters/close-up-sandwich-isolated.png" },
   { category: "starter", name: "Crispy Veg Rolls", price: 179, img: "/images/starters/food-gastronomy-comida-gourmet-foodie.jpg" },
   { category: "starter", name: "Stuffed Eggplant Rolls", price: 189, img: "/images/starters/front-view-stuffed-eggplant-rolls-white-oval-plate-different-spices-small-bowls-leaves-grey.jpg" },
@@ -35,7 +34,6 @@ const allMenuItems = [
   { category: "starter", name: "Healthy Veg Meal Box", price: 179, img: "/images/starters/restaurant-healthy-food-delivery-take-away-boxes.jpg" },
   { category: "starter", name: "Boiled Egg & Veg Plate", price: 149, img: "/images/starters/top-view-plate-with-boiled-eggs-vegetables.jpg" },
   { category: "starter", name: "Roasted Vegetables Platter", price: 169, img: "/images/starters/top-view-roasted-vegetables-roasted-vegetables-plate.jpg" },
-
 ];
 
 export default function MenuContent() {
@@ -68,7 +66,9 @@ export default function MenuContent() {
       });
 
       const data = await res.json();
-      data.success ? alert(`${item.name} added 😊`) : alert("Something went wrong");
+      data.success
+        ? alert(`${item.name} added 😊`)
+        : alert("Something went wrong");
     } catch {
       alert("Server error ❌");
     } finally {
@@ -76,86 +76,70 @@ export default function MenuContent() {
     }
   };
 
-const placeOrder = async () => {
-  const table = localStorage.getItem("selectedTable");
-  if (!table) return alert("No table found!");
+  const placeOrder = async () => {
+    const table = localStorage.getItem("selectedTable");
+    if (!table) return alert("No table found!");
 
-  try {
-    setPlacing(true);
+    try {
+      setPlacing(true);
 
-    // get cart
-    const cartRes = await fetch("/api/cart");
-    const cartData = await cartRes.json();
+      const cartRes = await fetch("/api/cart");
+      const cartData = await cartRes.json();
 
-    if (!cartData.cart?.items?.length) {
-      alert("Cart is empty!");
-      return;
+      if (!cartData.cart?.items?.length) {
+        alert("Cart is empty!");
+        return;
+      }
+
+      const total = cartData.cart.items.reduce(
+        (sum: number, item: any) => sum + item.price * item.quantity,
+        0
+      );
+
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: total }),
+      });
+
+      const data = await res.json();
+      if (!data.success) return alert("Payment init failed");
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
+        amount: data.amount,
+        currency: "INR",
+        name: "Smart Restaurant",
+        description: "Food Order Payment",
+        order_id: data.orderId,
+        handler: async function () {
+          const orderRes = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              table,
+              items: cartData.cart.items,
+            }),
+          });
+
+          const orderData = await orderRes.json();
+          if (orderData.success) {
+            await fetch("/api/cart", { method: "DELETE" });
+            alert("Payment successful 🎉");
+            window.location.href = "/orders";
+          }
+        },
+        theme: { color: "#f97316" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch {
+      alert("Server error ❌");
+    } finally {
+      setPlacing(false);
     }
-
-    // 🧮 total amount
-    const total = cartData.cart.items.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
-      0
-    );
-
-    // 🔥 call payment API
-    const res = await fetch("/api/payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: total }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      alert("Payment init failed");
-      return;
-    }
-
-    // 🟠 RAZORPAY OPEN
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-      amount: data.amount,
-      currency: "INR",
-      name: "Smart Restaurant",
-      description: "Food Order Payment",
-      order_id: data.orderId,
-
-      handler: async function () {
-        // after payment success → create order
-        const orderRes = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            table,
-            items: cartData.cart.items,
-          }),
-        });
-
-        const orderData = await orderRes.json();
-
-        if (orderData.success) {
-          await fetch("/api/cart", { method: "DELETE" });
-          alert("Payment successful 🎉");
-          window.location.href = "/orders";
-        }
-      },
-
-      theme: {
-        color: "#f97316",
-      },
-    };
-
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
-
-  } catch {
-    alert("Server error ❌");
-  } finally {
-    setPlacing(false);
-  }
-};
-
+  };
 
   const filteredMenu = allMenuItems.filter(
     (item) => item.category === activeCategory
@@ -166,40 +150,33 @@ const placeOrder = async () => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen px-8 md:px-20 pb-40 text-white bg-[#05051b]"
+      className="min-h-screen px-4 sm:px-6 md:px-12 lg:px-20 pb-32 text-white bg-[#05051b]"
     >
       {/* HEADER */}
-      <div className="pt-28">
+      <div className="pt-24 sm:pt-28">
         <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-4xl font-bold"
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold"
         >
-          Explore Our <span className="text-orange-400">Delicious Menu</span>
+          Explore Our{" "}
+          <span className="text-orange-400">Delicious Menu</span>
         </motion.h1>
 
         {tableFromQR && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-2 text-green-400"
-          >
+          <motion.p className="mt-2 text-green-400 text-sm sm:text-base">
             📌 Ordering for <b>Table {tableFromQR}</b>
           </motion.p>
         )}
       </div>
 
       {/* CATEGORY BUTTONS */}
-      <div className="mt-10 flex gap-4">
+      <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
         {["veg", "nonveg", "starter"].map((cat) => (
           <motion.button
             key={cat}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveCategory(cat)}
-            className={`px-6 py-2 rounded-full border ${
+            className={`px-4 sm:px-6 py-2 rounded-full border text-sm sm:text-base ${
               activeCategory === cat
                 ? "bg-orange-500 border-orange-400"
                 : "border-gray-500"
@@ -213,15 +190,15 @@ const placeOrder = async () => {
       {/* MENU GRID */}
       <motion.div
         layout
-        className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
+        className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8"
       >
         {filteredMenu.map((item, index) => (
           <motion.div
             key={index}
+            className="bg-white/10 backdrop-blur-md rounded-2xl p-4 hover:shadow-xl transition"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 }}
-            className="bg-white/10 rounded-2xl p-4"
+            transition={{ delay: index * 0.05 }}
           >
             <Image
               src={item.img}
@@ -231,14 +208,18 @@ const placeOrder = async () => {
               className="rounded-xl w-full h-44 object-cover"
             />
 
-            <h3 className="mt-3 text-xl font-semibold">{item.name}</h3>
-            <p className="text-orange-400 font-bold">₹{item.price}</p>
+            <h3 className="mt-3 text-lg sm:text-xl font-semibold">
+              {item.name}
+            </h3>
+            <p className="text-orange-400 font-bold text-lg">
+              ₹{item.price}
+            </p>
 
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => handleOrder(item)}
               disabled={loadingItem === item.name}
-              className="mt-4 px-5 py-2 bg-orange-500 rounded-full w-full"
+              className="mt-4 px-5 py-2 bg-orange-500 hover:bg-orange-600 rounded-full w-full text-sm sm:text-base"
             >
               {loadingItem === item.name ? "Adding..." : "Add To Cart"}
             </motion.button>
@@ -247,21 +228,16 @@ const placeOrder = async () => {
       </motion.div>
 
       {/* CONFIRM ORDER BUTTON */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="fixed bottom-8 left-0 right-0 flex justify-center"
-      >
+      <div className="fixed bottom-4 left-0 right-0 flex justify-center px-4">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={placeOrder}
           disabled={placing}
-          className="px-10 py-3 bg-orange-500 rounded-full"
+          className="w-full max-w-md px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-full text-sm sm:text-lg font-semibold shadow-lg"
         >
           {placing ? "Placing Order..." : "Confirm Order"}
         </motion.button>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
