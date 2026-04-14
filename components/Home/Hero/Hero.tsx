@@ -27,11 +27,21 @@ const Hero = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.9, ease: "easeOut" }}
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-wide leading-tight">
-            Smart Restaurant
-            <span className="text-orange-400"> Management </span>
-            Using QR Scanner
-          </h1>
+          <h1
+  className="
+    font-[var(--font-poppins)]
+    text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl
+    font-extrabold leading-tight tracking-tight
+    text-white drop-shadow-lg
+  "
+>
+  Smart Restaurant <br />
+  <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+    Management
+  </span>{" "}
+  <br />
+  Using QR Scanner
+</h1>
 
           {/* Typewriter Effect */}
           <div className="mt-6 text-gray-300 text-base sm:text-lg md:text-xl min-h-[40px]">
