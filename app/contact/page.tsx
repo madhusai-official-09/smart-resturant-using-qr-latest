@@ -9,6 +9,7 @@ import {
 } from "react-icons/bi";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import emailjs from "@emailjs/browser";
 
 interface ContactItemProps {
   icon: React.ReactNode;
@@ -19,6 +20,7 @@ interface ContactItemProps {
 
 const ContactPage = () => {
   const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -36,13 +38,28 @@ const ContactPage = () => {
   ) => {
     e.preventDefault();
     setSending(true);
+    setStatus("");
 
-    // Simulate API request
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        {
+          user_name: form.name,
+          user_email: form.email,
+          message: form.message,
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      );
 
-    alert("Message sent successfully!");
-    setForm({ name: "", email: "", message: "" });
-    setSending(false);
+      setStatus("success");
+      setForm({ name: "", email: "", message: "" });
+    } catch (error) {
+      console.error("EmailJS Error:", error);
+      setStatus("error");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -147,10 +164,22 @@ const ContactPage = () => {
             className="px-4 py-3.5 bg-[#0a0a24] text-white rounded-md w-full h-44 outline-none placeholder:text-white/60 border border-transparent focus:border-orange-500 transition-all"
           />
 
+          {/* Status Messages */}
+          {status === "success" && (
+            <p className="text-green-400 mb-4">
+              ✅ Message sent successfully!
+            </p>
+          )}
+          {status === "error" && (
+            <p className="text-red-400 mb-4">
+              ❌ Failed to send message. Please try again.
+            </p>
+          )}
+
           <button
             type="submit"
             disabled={sending}
-            className="mt-6 w-full sm:w-auto px-10 py-3.5 bg-orange-500 hover:bg-orange-600 transition-all duration-300 rounded-full shadow-[0_0_20px_rgba(255,140,0,0.6)] hover:shadow-[0_0_35px_rgba(255,140,0,1)] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="mt-4 w-full sm:w-auto px-10 py-3.5 bg-orange-500 hover:bg-orange-600 transition-all duration-300 rounded-full shadow-[0_0_20px_rgba(255,140,0,0.6)] hover:shadow-[0_0_35px_rgba(255,140,0,1)] disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {sending ? "Sending..." : "Send Message"}
           </button>
