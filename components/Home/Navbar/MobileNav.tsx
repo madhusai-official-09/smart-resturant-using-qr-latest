@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CgClose } from "react-icons/cg";
 import { Button } from "@/components/ui/button";
 import { MdFastfood } from "react-icons/md";
@@ -49,7 +49,6 @@ const NavItem: React.FC<{
       `}
     >
       <span className="select-none">{label}</span>
-
       {active && (
         <span className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-400 rounded-full" />
       )}
@@ -59,6 +58,39 @@ const NavItem: React.FC<{
 
 const MobileNav: React.FC<Props> = ({ closeNav, showNav, onStart }) => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch logged-in user
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const data = await res.json();
+      setUser(data.user || null);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  // Logout handler
+  const logout = async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    setUser(null);
+    closeNav();
+    router.push("/login");
+    router.refresh();
+  };
 
   // Lock background scroll
   useEffect(() => {
@@ -73,11 +105,7 @@ const MobileNav: React.FC<Props> = ({ closeNav, showNav, onStart }) => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeNav();
     };
-
-    if (showNav) {
-      window.addEventListener("keydown", handleEsc);
-    }
-
+    if (showNav) window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [showNav, closeNav]);
 
@@ -110,10 +138,11 @@ const MobileNav: React.FC<Props> = ({ closeNav, showNav, onStart }) => {
             className="relative z-10 w-full max-w-md rounded-2xl p-[1px]
             bg-gradient-to-r from-orange-500/40 via-transparent to-orange-400/20 shadow-2xl"
           >
-            <div className="rounded-2xl bg-black/80 backdrop-blur-lg 
+            <div
+              className="rounded-2xl bg-black/80 backdrop-blur-lg 
               border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.6)] 
-              p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
-
+              p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
+            >
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center space-x-3">
@@ -131,7 +160,6 @@ const MobileNav: React.FC<Props> = ({ closeNav, showNav, onStart }) => {
                     SmartRestaurant
                   </h3>
                 </div>
-
                 <button
                   onClick={closeNav}
                   aria-label="Close menu"
@@ -141,14 +169,13 @@ const MobileNav: React.FC<Props> = ({ closeNav, showNav, onStart }) => {
                 </button>
               </div>
 
-              {/* Links */}
+              {/* Nav Links */}
               <nav className="space-y-2">
                 {navLinks.map((link) => {
                   const active =
                     link.url === "/"
                       ? pathname === "/"
                       : pathname.startsWith(link.url);
-
                   return (
                     <NavItem
                       key={link.id}
@@ -180,19 +207,68 @@ const MobileNav: React.FC<Props> = ({ closeNav, showNav, onStart }) => {
                 </Button>
               </Link>
 
-              {/* Auth Buttons */}
-              <div className="mt-6 flex flex-col gap-3">
-                <Link href="/login" onClick={closeNav}>
-                  <button className="w-full py-2 rounded-lg border border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white transition">
-                    Login
-                  </button>
-                </Link>
+              <div className="h-px bg-white/10 my-6" />
 
-                <Link href="/register" onClick={closeNav}>
-                  <button className="w-full py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition">
-                    Register
-                  </button>
-                </Link>
+              {/* Auth Section */}
+              <div>
+                {loading ? (
+                  // Loading skeleton
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
+                    <div className="w-9 h-9 rounded-full bg-gray-700 animate-pulse shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-gray-700 animate-pulse rounded w-24" />
+                      <div className="h-2 bg-gray-700 animate-pulse rounded w-16" />
+                    </div>
+                    <div className="w-16 h-8 bg-gray-700 animate-pulse rounded-lg" />
+                  </div>
+                ) : user ? (
+                  // ✅ User profile — shown after login
+                  <div
+                    className="flex items-center justify-between
+                    bg-orange-500/[0.08] border border-orange-400/25
+                    rounded-xl px-4 py-3"
+                  >
+                    {/* Avatar + name */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0
+                        bg-orange-500/20 border-[1.5px] border-orange-400/60
+                        text-orange-400 text-sm font-medium"
+                      >
+                        {user.name?.slice(0, 2).toLowerCase() ?? "?"}
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium leading-tight">
+                          {user.name}
+                        </p>
+                        <p className="text-slate-400 text-[11px]">Logged in</p>
+                      </div>
+                    </div>
+
+                    {/* Logout */}
+                    <button
+                      onClick={logout}
+                      className="bg-red-500 hover:bg-red-600 text-white text-[13px]
+                        font-medium px-4 py-1.5 rounded-lg transition whitespace-nowrap"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  // Login / Register — shown before login
+                  <div className="flex flex-col gap-3">
+                    <Link href="/login" onClick={closeNav}>
+                      <button className="w-full py-2 rounded-lg border border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white transition">
+                        Login
+                      </button>
+                    </Link>
+                    <Link href="/register" onClick={closeNav}>
+                      <button className="w-full py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition">
+                        Register
+                      </button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
