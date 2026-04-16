@@ -35,7 +35,7 @@ export default function LoginPage() {
       }
 
       // 🔥 IMPORTANT: refresh layout so navbar updates
-      router.push("/menu");
+      router.push("/qr");
       router.refresh();
 
     } catch (err) {
